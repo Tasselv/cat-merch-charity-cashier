@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#fff8ed">
+  <title>猫猫周边义卖收银台</title>
+  <style>
+    :root {
+      --ink: #2f2926;
+      --muted: #776e68;
+      --paper: #fffdf8;
+      --cream: #fff8ed;
+      --peach: #ff826f;
+      --peach-dark: #dc5e50;
+      --peach-soft: #fff0eb;
+      --green: #4d8b6a;
+      --green-soft: #eaf5ee;
+      --yellow: #f5c963;
+      --line: #eadfd5;
+      --shadow: 0 14px 38px rgba(85, 55, 38, .10);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 14% 8%, rgba(255, 130, 111, .09) 0 2px, transparent 3px),
+        radial-gradient(circle at 84% 22%, rgba(77, 139, 106, .09) 0 2px, transparent 3px),
+        var(--cream);
+      background-size: 34px 34px, 42px 42px, auto;
+      font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button, input, textarea { font: inherit; }
+    button { color: inherit; }
+    button { touch-action: manipulation; }
+
+    .app {
+      width: min(1480px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 24px clamp(16px, 3vw, 42px) 42px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 12px;
+      padding: 4px 2px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 14px; }
+
+    .header-cat {
+      display: inline-block;
+      flex: 0 0 auto;
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    h1 { margin: 0; font-size: clamp(24px, 3vw, 34px); letter-spacing: -.04em; }
+
+    .date-text { color: var(--muted); font-size: 14px; white-space: nowrap; }
+
+    .view-switch {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      width: min(100%, 330px);
+      margin: 0 0 14px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 253, 248, .8);
+    }
+    .view-btn {
+      min-height: 38px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .view-btn.active { background: var(--ink); color: #fff; box-shadow: 0 5px 14px rgba(47, 41, 38, .18); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(340px, 400px);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .catalog,
+    .order-panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 248, .92);
+      box-shadow: var(--shadow);
+    }
+
+    .catalog { padding: 22px; }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .section-title { margin: 0; font-size: 21px; }
+    .section-note { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+
+    .clear-btn,
+    .ghost-btn,
+    .modal-close {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+      cursor: pointer;
+    }
+
+    .clear-btn { padding: 9px 13px; color: var(--muted); }
+    .clear-btn { white-space: nowrap; }
+    .clear-btn:hover { border-color: var(--peach); color: var(--peach-dark); }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 9px;
+    }
+
+    .product-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 116px;
+      gap: 12px;
+      align-items: center;
+      min-height: 82px;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: var(--paper);
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .product-card:hover {
+      transform: translateY(-2px);
+      border-color: #efb4a7;
+      box-shadow: 0 10px 24px rgba(85, 55, 38, .08);
+    }
+
+    .product-image { display: none; }
+
+    .product-grid.photo-view { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .photo-view .product-card {
+      display: block;
+      min-height: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .photo-view .product-image {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      background-color: #fffaf0;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+    .photo-view .product-image.no-image { background-image: none; }
+    .photo-view .product-info { padding: 10px 10px 0; }
+    .photo-view .product-name { min-height: 43px; font-size: 14px; }
+    .photo-view .price-rule { min-height: 38px; font-size: 11px; }
+    .photo-view .add-row { margin: 8px 10px 11px; }
+    .native-bag { background-image: url("assets/native-bag-v2.png"); }
+    .native-mousepad { background-image: url("assets/native-mousepad-v2.png"); }
+    .native-plastic-card { background-image: url("assets/native-plastic-card-v2.png"); }
+    .native-pvc-card { background-image: url("assets/native-pvc-card-v2.png"); }
+    .native-cute-keychain { background-image: url("assets/native-cute-keychain-v2.png"); }
+    .native-drawn-keychain { background-image: url("assets/native-drawn-keychain-v2.png"); }
+    .native-postcard { background-image: url("assets/native-postcard-v2.png"); }
+    .native-plush-badge { background-image: url("assets/native-plush-badge-v2.png"); }
+    .native-small-card { background-image: url("assets/native-small-card-v2.png"); }
+    .native-passport { background-image: url("assets/native-passport-v2.png"); }
+    .native-synthetic-sticker { background-image: url("assets/native-synthetic-sticker-v2.png"); }
+    .native-silver-sticker { background-image: url("assets/native-silver-sticker-v2.png"); }
+    .photo-view .sprite-b { background-image: url("assets/products-b.png"); background-size: 300% 300%; }
+    .photo-view .pos-1 { background-position: 50% 0; }
+    .photo-view .pos-3 { background-position: 0 50%; }
+
+    .product-name { margin: 0 0 5px; font-size: 16px; line-height: 1.35; }
+    .price-rule { margin: 0; color: var(--peach-dark); font-size: 13px; font-weight: 700; line-height: 1.4; }
+
+    .add-row {
+      display: grid;
+      grid-template-columns: 34px minmax(28px, 1fr) 34px;
+      gap: 6px;
+      margin-top: 0;
+      align-items: center;
+    }
+
+    .qty-btn {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      font-size: 21px;
+      line-height: 1;
+      cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .qty-btn:hover { border-color: var(--peach); color: var(--peach-dark); }
+
+    .product-qty { text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+    .order-panel {
+      position: sticky;
+      top: 18px;
+      overflow: hidden;
+    }
+
+    .order-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 20px 14px;
+    }
+
+    .order-title { margin: 0; font-size: 21px; }
+    .item-count { color: var(--muted); font-size: 13px; }
+
+    .cart-list {
+      max-height: min(44vh, 480px);
+      overflow-y: auto;
+      padding: 0 14px;
+      scrollbar-width: thin;
+      scrollbar-color: #dacbc0 transparent;
+    }
+
+    .empty-state { padding: 56px 18px 64px; text-align: center; color: var(--muted); }
+    .empty-cat { display: block; margin-bottom: 9px; font-size: 42px; filter: grayscale(.1); }
+    .empty-state strong { display: block; margin-bottom: 5px; color: var(--ink); }
+
+    .cart-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px 12px;
+      padding: 13px 7px;
+      border-top: 1px dashed var(--line);
+    }
+    .cart-item:first-child { border-top: 0; }
+    .cart-name { margin: 0 0 3px; font-size: 14px; line-height: 1.35; }
+    .cart-rule { margin: 0; color: var(--muted); font-size: 11px; }
+    .cart-subtotal { align-self: center; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .cart-controls { display: flex; align-items: center; gap: 7px; }
+    .cart-controls .qty-btn { width: 28px; height: 28px; border-radius: 8px; font-size: 17px; }
+    .cart-qty { min-width: 24px; text-align: center; font-size: 13px; font-weight: 800; }
+    .saving { align-self: center; color: var(--green); font-size: 11px; }
+
+    .gift-box {
+      margin: 14px 18px 0;
+      padding: 13px 14px;
+      border: 1px dashed #e3b94f;
+      border-radius: 14px;
+      background: #fff9df;
+    }
+    .gift-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; font-weight: 800; }
+    .gift-status { color: #8d6b16; font-size: 11px; font-weight: 700; }
+    .progress-track { height: 7px; margin: 9px 0 8px; overflow: hidden; border-radius: 99px; background: #eadfbb; }
+    .progress-bar { width: 0; height: 100%; border-radius: inherit; background: var(--yellow); transition: width .25s ease; }
+    .gift-lines { display: grid; gap: 4px; color: var(--muted); font-size: 11px; }
+    .gift-line.active { color: var(--green); font-weight: 700; }
+
+    .total-box { margin-top: 16px; padding: 19px 20px 20px; background: var(--ink); color: white; }
+    .total-line { display: flex; align-items: end; justify-content: space-between; gap: 12px; }
+    .total-label { color: rgba(255,255,255,.68); font-size: 13px; }
+    .total-amount { font-size: 34px; font-weight: 900; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+
+    .checkout-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 14px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--peach);
+      color: white;
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: inset 0 -3px 0 rgba(115, 35, 25, .15);
+    }
+    .checkout-btn:hover { background: #f47462; }
+    .checkout-btn:disabled { cursor: not-allowed; opacity: .45; }
+
+    .modal-backdrop {
+      position: fixed;
+      z-index: 50;
+      inset: 0;
+      display: grid;
+      padding: 20px;
+      place-items: center;
+      background: rgba(47, 41, 38, .52);
+      backdrop-filter: blur(5px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+    .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+
+    .checkout-modal {
+      width: min(540px, 100%);
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      border-radius: 24px;
+      background: var(--paper);
+      box-shadow: 0 30px 90px rgba(25, 15, 10, .24);
+      transform: translateY(12px) scale(.98);
+      transition: transform .18s ease;
+    }
+    .modal-backdrop.open .checkout-modal { transform: none; }
+
+    .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 22px 14px; }
+    .modal-head h2 { margin: 0; font-size: 23px; }
+    .modal-close { width: 36px; height: 36px; font-size: 22px; cursor: pointer; }
+
+    .receipt { margin: 0 22px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: white; }
+    .receipt-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; padding: 5px 0; color: var(--muted); font-size: 13px; }
+    .receipt-row span:last-child { color: var(--ink); font-weight: 700; }
+    .receipt-total { display: flex; align-items: end; justify-content: space-between; margin-top: 10px; padding-top: 12px; border-top: 1px dashed var(--line); }
+    .receipt-total strong:last-child { color: var(--peach-dark); font-size: 28px; }
+
+    .gift-confirm { margin: 14px 22px 0; padding: 14px 16px; border-radius: 16px; background: var(--green-soft); }
+    .gift-confirm h3 { margin: 0 0 7px; color: var(--green); font-size: 14px; }
+    .gift-confirm p { margin: 4px 0; color: #486453; font-size: 13px; }
+    .gift-confirm .not-reached { color: var(--muted); }
+
+    .note-field { display: grid; gap: 7px; margin: 14px 22px 0; color: var(--muted); font-size: 13px; font-weight: 700; }
+    .note-field textarea { width: 100%; min-height: 74px; resize: vertical; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; outline: none; background: white; color: var(--ink); font: inherit; font-weight: 400; }
+    .note-field textarea:focus { border-color: var(--peach); box-shadow: 0 0 0 3px var(--peach-soft); }
+
+    .modal-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; padding: 18px 22px 22px; }
+    .ghost-btn { padding: 13px; cursor: pointer; }
+    .finish-btn { padding: 13px; border: 0; border-radius: 12px; background: var(--peach); color: white; font-weight: 900; cursor: pointer; }
+    .finish-btn:disabled { cursor: not-allowed; opacity: .45; }
+
+    .toast {
+      position: fixed;
+      z-index: 80;
+      left: 50%;
+      bottom: 28px;
+      padding: 11px 18px;
+      border-radius: 999px;
+      background: var(--ink);
+      color: white;
+      font-size: 13px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.2);
+      transform: translate(-50%, 18px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+    }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+    .mobile-checkout-bar,
+    .mobile-cart-backdrop { display: none; }
+
+    .success-screen {
+      display: none;
+      padding: 40px 26px 34px;
+      text-align: center;
+    }
+    .success-screen.show { display: block; }
+    .success-icon { display: grid; width: 76px; height: 76px; margin: 0 auto 16px; place-items: center; border-radius: 50%; background: var(--green-soft); font-size: 38px; }
+    .success-screen h2 { margin: 0 0 8px; }
+    .success-screen p { margin: 0 0 24px; color: var(--muted); }
+    .new-order-btn { padding: 12px 24px; border: 0; border-radius: 12px; background: var(--ink); color: white; font-weight: 800; cursor: pointer; }
+
+    .history-entry { display: flex; justify-content: center; gap: 10px; padding: 24px 0 4px; }
+    .history-entry-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 17px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--paper);
+      color: var(--muted);
+      cursor: pointer;
+      box-shadow: 0 7px 20px rgba(85, 55, 38, .07);
+    }
+    .history-entry-btn:hover { border-color: var(--peach); color: var(--peach-dark); }
+    .history-count { display: grid; min-width: 20px; height: 20px; padding: 0 5px; place-items: center; border-radius: 99px; background: var(--peach-soft); color: var(--peach-dark); font-size: 11px; font-weight: 800; }
+
+    .history-backdrop {
+      position: fixed;
+      z-index: 65;
+      inset: 0;
+      display: grid;
+      padding: 0;
+      place-items: center;
+      background: rgba(47, 41, 38, .52);
+      backdrop-filter: blur(5px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+    .history-backdrop.open { opacity: 1; pointer-events: auto; }
+    .history-panel {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      max-height: none;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 0;
+      background: var(--paper);
+      box-shadow: 0 30px 90px rgba(25, 15, 10, .24);
+      transform: translateY(8px);
+      transition: transform .18s ease;
+    }
+    .history-backdrop.open .history-panel { transform: none; }
+    .history-head { display: grid; grid-template-columns: 42px 1fr 64px; align-items: center; padding: 14px 16px 10px; }
+    .history-head h2 { margin: 0; text-align: center; font-size: 21px; }
+    .history-export-mode { border: 0; background: transparent; color: var(--peach-dark); font-weight: 800; cursor: pointer; }
+    .history-select-toolbar { display: none; align-items: center; gap: 10px; padding: 10px 16px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--peach-soft); font-size: 13px; }
+    .history-select-toolbar.show { display: flex; }
+    .select-all-label { display: flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; }
+    .select-count { flex: 1; color: var(--muted); }
+    .export-selected-btn { padding: 7px 10px; border: 0; border-radius: 9px; background: var(--peach); color: white; font-weight: 800; cursor: pointer; }
+    .export-selected-btn:disabled { opacity: .45; }
+    .history-list { min-height: 180px; overflow-y: auto; padding: 8px 12px 18px; }
+    .history-empty { padding: 70px 20px; text-align: center; color: var(--muted); }
+    .history-empty .empty-cat { margin-bottom: 10px; }
+    .history-item-shell { position: relative; margin-top: 8px; overflow: hidden; border-radius: 14px; background: #df6758; }
+    .swipe-delete { position: absolute; inset: 0 0 0 auto; width: 82px; border: 0; background: #df6758; color: white; font-weight: 800; cursor: pointer; }
+    .history-row { position: relative; z-index: 1; padding: 13px 14px; border: 1px solid var(--line); border-radius: 14px; background: white; transition: transform .18s ease; touch-action: pan-y; }
+    .history-row.swiped { transform: translateX(-82px); }
+    .history-summary { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 10px; cursor: pointer; }
+    .history-check { display: none; width: 18px; height: 18px; accent-color: var(--peach); }
+    .history-panel.selecting .history-check { display: block; }
+    .history-time { font-size: 14px; font-weight: 800; }
+    .history-piece-count { color: var(--muted); font-size: 12px; }
+    .history-amount { color: var(--peach-dark); font-size: 17px; font-weight: 900; }
+    .history-arrow { color: var(--muted); transition: transform .18s ease; }
+    .history-row.expanded .history-arrow { transform: rotate(180deg); }
+    .history-detail { display: none; margin-top: 11px; padding-top: 9px; border-top: 1px dashed var(--line); }
+    .history-row.expanded .history-detail { display: grid; gap: 6px; }
+    .history-detail-line { display: flex; justify-content: space-between; gap: 14px; color: var(--muted); font-size: 12px; }
+    .history-detail-line strong { color: var(--ink); }
+    .history-note { margin-top: 3px; padding: 8px 10px; border-radius: 9px; background: var(--cream); color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .history-note strong { color: var(--ink); }
+
+    .editor-backdrop { position: fixed; z-index: 66; inset: 0; background: var(--paper); opacity: 0; pointer-events: none; transform: translateY(12px); transition: .18s ease; }
+    .editor-backdrop.open { opacity: 1; pointer-events: auto; transform: none; }
+    .editor-panel { display: flex; height: 100%; flex-direction: column; overflow: hidden; }
+    .editor-head { display: grid; grid-template-columns: 42px 1fr 68px; align-items: center; padding: 14px 16px 10px; border-bottom: 1px solid var(--line); }
+    .editor-head h2 { margin: 0; text-align: center; font-size: 21px; }
+    .editor-add-btn { border: 0; background: transparent; color: var(--peach-dark); font-weight: 800; cursor: pointer; }
+    .editor-content { flex: 1; overflow-y: auto; padding: 10px 12px calc(28px + env(safe-area-inset-bottom)); }
+    .editor-item { display: grid; grid-template-columns: 54px minmax(0,1fr) auto; gap: 10px; align-items: center; margin-bottom: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: white; }
+    .editor-thumb { width: 54px; height: 54px; border-radius: 10px; background-color: var(--cream); background-position: center; background-repeat: no-repeat; background-size: contain; }
+    .editor-thumb.sprite-b { background-image: url("assets/products-b.png"); background-size: 300% 300%; }
+    .editor-thumb.sprite-b.pos-1 { background-position: 50% 0; }
+    .editor-thumb.sprite-b.pos-3 { background-position: 0 50%; }
+    .editor-thumb.empty { display: grid; place-items: center; color: #b7aaa2; font-size: 10px; text-align: center; }
+    .editor-item h3 { margin: 0 0 4px; font-size: 14px; }
+    .editor-item p { margin: 0; color: var(--peach-dark); font-size: 11px; font-weight: 700; }
+    .editor-actions { display: grid; gap: 6px; }
+    .editor-mini-btn { min-width: 52px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: white; font-size: 11px; cursor: pointer; }
+    .editor-mini-btn.delete { color: #c54f43; }
+    .product-form-wrap { display: none; position: absolute; z-index: 2; inset: 0; overflow-y: auto; padding: 16px 14px calc(28px + env(safe-area-inset-bottom)); background: var(--paper); }
+    .product-form-wrap.open { display: block; }
+    .product-form { width: min(540px, 100%); margin: 0 auto; }
+    .product-form-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .product-form-title h3 { margin: 0; font-size: 21px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+    .form-field { display: grid; gap: 6px; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .form-field.full { grid-column: 1 / -1; }
+    .form-field input { width: 100%; min-height: 44px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; background: white; color: var(--ink); outline: none; font: inherit; font-weight: 400; }
+    .form-field input:focus { border-color: var(--peach); box-shadow: 0 0 0 3px var(--peach-soft); }
+    .image-picker { display: grid; grid-template-columns: 80px 1fr; gap: 12px; align-items: center; }
+    .image-preview { display: grid; width: 80px; height: 80px; place-items: center; overflow: hidden; border: 1px dashed var(--line); border-radius: 12px; background: var(--cream); background-position: center; background-repeat: no-repeat; background-size: contain; color: #a89a92; font-size: 11px; }
+    .image-picker-actions { display: grid; gap: 7px; }
+    .image-picker-actions input { min-height: auto; padding: 7px; font-size: 11px; }
+    .form-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 9px; margin-top: 18px; }
+    .form-actions button { min-height: 46px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+    .save-product-btn { border: 0; background: var(--peach); color: white; }
+
+    @media (max-width: 780px) {
+      body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+      .app { padding: 10px 8px 18px; }
+      .topbar { margin-bottom: 10px; }
+      .history-entry { padding: 18px 0 2px; }
+      .layout { grid-template-columns: 1fr; }
+      .catalog { padding: 11px; border-radius: 17px; }
+      .order-panel { position: static; }
+      .cart-list { max-height: none; }
+      .mobile-checkout-bar {
+        position: fixed;
+        z-index: 35;
+        right: 8px;
+        bottom: calc(8px + env(safe-area-inset-bottom));
+        left: 8px;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 9px;
+        padding: 8px;
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 16px;
+        background: rgba(47, 41, 38, .96);
+        color: white;
+        box-shadow: 0 16px 40px rgba(42, 27, 20, .28);
+        backdrop-filter: blur(12px);
+      }
+      .mobile-cart-btn {
+        position: relative;
+        display: grid;
+        width: 43px;
+        height: 42px;
+        place-items: center;
+        border: 0;
+        border-radius: 13px;
+        background: rgba(255,255,255,.11);
+        color: white;
+        cursor: pointer;
+      }
+      .mobile-cart-btn svg { width: 23px; height: 23px; }
+      .cart-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        display: grid;
+        min-width: 21px;
+        height: 21px;
+        padding: 0 5px;
+        place-items: center;
+        border: 2px solid var(--ink);
+        border-radius: 999px;
+        background: var(--peach);
+        color: white;
+        font-size: 10px;
+        font-weight: 900;
+      }
+      .mobile-summary { min-width: 0; }
+      .mobile-count { display: block; color: rgba(255,255,255,.65); font-size: 11px; }
+      .mobile-total { display: block; margin-top: 1px; font-size: 20px; line-height: 1.1; font-weight: 900; }
+      .mobile-pay-btn {
+        min-width: 104px;
+        min-height: 42px;
+        padding: 0 13px;
+        border: 0;
+        border-radius: 13px;
+        background: var(--peach);
+        color: white;
+        font-weight: 900;
+        cursor: pointer;
+      }
+      .mobile-pay-btn:disabled { opacity: .45; }
+      .mobile-cart-backdrop {
+        position: fixed;
+        z-index: 42;
+        inset: 0;
+        align-items: end;
+        background: rgba(47, 41, 38, .48);
+        backdrop-filter: blur(4px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .18s ease;
+      }
+      .mobile-cart-backdrop.open {
+        display: flex;
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .mobile-cart-sheet {
+        width: 100%;
+        max-height: 78vh;
+        padding-bottom: env(safe-area-inset-bottom);
+        overflow: hidden;
+        border-radius: 24px 24px 0 0;
+        background: var(--paper);
+        box-shadow: 0 -18px 60px rgba(25, 15, 10, .18);
+      }
+      .mobile-cart-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 18px 10px;
+      }
+      .mobile-cart-head h2 { margin: 0; font-size: 20px; }
+      .mobile-cart-list { max-height: 50vh; overflow-y: auto; padding: 0 12px; }
+      .mobile-cart-footer { padding: 12px 18px 18px; border-top: 1px solid var(--line); }
+      .mobile-cart-total { display: flex; align-items: end; justify-content: space-between; margin-bottom: 10px; }
+      .mobile-cart-total span { color: var(--muted); font-size: 13px; }
+      .mobile-cart-total strong { color: var(--peach-dark); font-size: 25px; }
+      .mobile-cart-checkout { width: 100%; min-height: 48px; border: 0; border-radius: 13px; background: var(--peach); color: white; font-weight: 900; }
+      .mobile-cart-checkout:disabled { opacity: .45; }
+      .history-backdrop { align-items: stretch; padding: 0; }
+      .history-panel { width: 100%; height: 100%; max-height: none; border-radius: 0; padding-bottom: env(safe-area-inset-bottom); transform: translateY(18px); }
+      .history-entry-btn { padding: 9px 13px; }
+    }
+
+    @media (max-width: 480px) {
+      .topbar { gap: 8px; padding: 3px 1px; }
+      .brand { gap: 6px; }
+      .header-cat { font-size: 24px; }
+      h1 { font-size: 20px; }
+      .date-text { font-size: 12px; }
+      .view-switch { width: 100%; margin-bottom: 10px; }
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 5px 10px;
+        margin-bottom: 11px;
+      }
+      .section-head > div { display: contents; }
+      .section-title { grid-column: 1; margin: 0; font-size: 19px; }
+      .section-note { grid-column: 1 / -1; margin: 0; font-size: 12px; }
+      .clear-btn { grid-column: 2; grid-row: 1; padding: 7px 10px; font-size: 13px; }
+      .product-grid { gap: 6px; }
+      .product-card {
+        grid-template-columns: minmax(0, 1fr) 106px;
+        gap: 8px;
+        min-height: 76px;
+        padding: 8px 10px;
+        border-radius: 13px;
+      }
+      .product-name { font-size: 14px; }
+      .price-rule { font-size: 11.5px; line-height: 1.3; }
+      .qty-btn { width: 34px; height: 34px; border-radius: 9px; font-size: 19px; }
+      .add-row { grid-template-columns: 34px minmax(22px, 1fr) 34px; gap: 4px; }
+      .product-grid.photo-view { gap: 8px; }
+      .photo-view .product-card { display: block; padding: 0; }
+      .photo-view .product-info { padding: 8px 8px 0; }
+      .photo-view .product-name { min-height: 38px; font-size: 13px; }
+      .photo-view .price-rule { min-height: 34px; font-size: 10.5px; }
+      .photo-view .add-row { margin: 7px 8px 9px; }
+      .modal-backdrop { align-items: end; padding: 0; }
+      .checkout-modal {
+        width: 100%;
+        max-height: 92vh;
+        border-radius: 24px 24px 0 0;
+        padding-bottom: env(safe-area-inset-bottom);
+        transform: translateY(30px);
+      }
+      .finish-btn, .ghost-btn { min-height: 48px; }
+      .modal-actions { grid-template-columns: 1fr; }
+      .ghost-btn { order: 2; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-field.full { grid-column: auto; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="header-cat" aria-hidden="true">🐱</span>
+        <h1>猫猫周边义卖收银台</h1>
+      </div>
+      <span class="date-text" id="dateText" aria-label="今天日期">--月--日</span>
+    </header>
+
+    <nav class="view-switch" aria-label="商品查看方式">
+      <button class="view-btn active" type="button" data-view="text" aria-pressed="true">文字版</button>
+      <button class="view-btn" type="button" data-view="photo" aria-pressed="false">商品图版</button>
+    </nav>
+
+    <div class="layout">
+      <section class="catalog" aria-labelledby="catalogTitle">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title" id="catalogTitle">选择商品</h2>
+            <p class="section-note">点击加减直接计入订单；套餐价会自动计算</p>
+          </div>
+          <button class="clear-btn" type="button" id="clearOrderBtn">清空订单</button>
+        </div>
+        <div class="product-grid" id="productGrid"></div>
+      </section>
+
+      <aside class="order-panel" aria-labelledby="orderTitle">
+        <div class="order-head">
+          <h2 class="order-title" id="orderTitle">本次订单</h2>
+          <span class="item-count" id="itemCount">0 件商品</span>
+        </div>
+        <div class="cart-list" id="cartList"></div>
+
+        <div class="gift-box">
+          <div class="gift-title">
+            <span>🎁 义卖满赠</span>
+            <span class="gift-status" id="giftStatus">再选一些就有赠品啦</span>
+          </div>
+          <div class="progress-track" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
+          <div class="gift-lines">
+            <div class="gift-line" id="gift35">○ 满 ¥35（未满 ¥50）送 10 个小猫口罩</div>
+            <div class="gift-line" id="gift50">○ 满 ¥50 送 1 个亚克力立牌（不叠加）</div>
+          </div>
+        </div>
+
+        <div class="total-box">
+          <div class="total-line">
+            <span class="total-label">应收金额</span>
+            <strong class="total-amount">¥<span id="totalAmount">0.00</span></strong>
+          </div>
+          <button class="checkout-btn" type="button" id="checkoutBtn" disabled>核对结账单</button>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="history-entry">
+      <button class="history-entry-btn" type="button" id="openHistoryBtn">
+        <span>历史记录</span><span class="history-count" id="historyCount">0</span>
+      </button>
+      <button class="history-entry-btn" type="button" id="openEditorBtn">编辑商品</button>
+    </footer>
+  </main>
+
+  <div class="modal-backdrop" id="checkoutBackdrop" aria-hidden="true">
+    <section class="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+      <div id="checkoutContent">
+        <div class="modal-head">
+          <h2 id="checkoutTitle">结账单</h2>
+          <button class="modal-close" type="button" id="closeModalBtn" aria-label="关闭">×</button>
+        </div>
+        <div class="receipt" id="receipt"></div>
+        <div class="gift-confirm" id="giftConfirm"></div>
+        <label class="note-field">备注（选填）<textarea id="orderNote" maxlength="200" placeholder="可填写顾客、预留或交付说明"></textarea></label>
+        <div class="modal-actions">
+          <button class="ghost-btn" type="button" id="backBtn">返回修改</button>
+          <button class="finish-btn" type="button" id="finishBtn">结束本单</button>
+        </div>
+      </div>
+      <div class="success-screen" id="successScreen">
+        <div class="success-icon">✓</div>
+        <h2>本单已完成</h2>
+        <p id="successText">谢谢你为猫猫出一份力！</p>
+        <button class="new-order-btn" type="button" id="newOrderBtn">开始下一单</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="history-backdrop" id="historyBackdrop" aria-hidden="true">
+    <section class="history-panel" id="historyPanel" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+      <div class="history-head">
+        <button class="modal-close" type="button" id="closeHistoryBtn" aria-label="关闭历史记录">×</button>
+        <h2 id="historyTitle">历史记录</h2>
+        <button class="history-export-mode" type="button" id="historyExportModeBtn">导出</button>
+      </div>
+      <div class="history-select-toolbar" id="historySelectToolbar">
+        <label class="select-all-label"><input type="checkbox" id="selectAllHistory">全选</label>
+        <span class="select-count" id="historySelectCount">已选 0 条</span>
+        <button class="export-selected-btn" type="button" id="exportSelectedBtn" disabled>导出 Excel</button>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </section>
+  </div>
+
+  <div class="editor-backdrop" id="editorBackdrop" aria-hidden="true">
+    <section class="editor-panel" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
+      <div class="editor-head">
+        <button class="modal-close" type="button" id="closeEditorBtn" aria-label="关闭商品编辑">×</button>
+        <h2 id="editorTitle">编辑商品</h2>
+        <button class="editor-add-btn" type="button" id="addProductBtn">添加</button>
+      </div>
+      <div class="editor-content" id="editorProductList"></div>
+      <div class="product-form-wrap" id="productFormWrap">
+        <form class="product-form" id="productForm">
+          <div class="product-form-title"><h3 id="productFormTitle">添加商品</h3><button class="modal-close" type="button" id="closeProductFormBtn" aria-label="关闭表单">×</button></div>
+          <input type="hidden" id="editingProductId">
+          <div class="form-grid">
+            <label class="form-field full">商品名称<input id="productNameInput" maxlength="40" required placeholder="请输入商品名称"></label>
+            <label class="form-field">单价（元）<input id="productPriceInput" type="number" min="0.01" step="0.01" required placeholder="例如 12.9"></label>
+            <div></div>
+            <label class="form-field">优惠价 1（元）<input id="dealPrice1Input" type="number" min="0.01" step="0.01" placeholder="选填"></label>
+            <label class="form-field">优惠数量 1（个）<input id="dealQty1Input" type="number" min="2" step="1" placeholder="选填"></label>
+            <label class="form-field">优惠价 2（元）<input id="dealPrice2Input" type="number" min="0.01" step="0.01" placeholder="选填"></label>
+            <label class="form-field">优惠数量 2（个）<input id="dealQty2Input" type="number" min="2" step="1" placeholder="选填"></label>
+            <label class="form-field full">商品图（选填）
+              <div class="image-picker">
+                <div class="image-preview" id="productImagePreview">暂无图片</div>
+                <div class="image-picker-actions"><input id="productImageInput" type="file" accept="image/*"><button class="editor-mini-btn" type="button" id="removeProductImageBtn">移除图片</button></div>
+              </div>
+            </label>
+          </div>
+          <div class="form-actions"><button class="ghost-btn" type="button" id="cancelProductFormBtn">取消</button><button class="save-product-btn" type="submit">保存商品</button></div>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <div class="mobile-checkout-bar" aria-label="移动端快捷结账">
+    <button class="mobile-cart-btn" type="button" id="mobileCartBtn" aria-label="查看购物车">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="9" cy="20" r="1"></circle><circle cx="19" cy="20" r="1"></circle>
+        <path d="M3 3h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 7H6"></path>
+      </svg>
+      <span class="cart-badge" id="mobileCartBadge">0</span>
+    </button>
+    <div class="mobile-summary">
+      <span class="mobile-count" id="mobileCount">还未选择商品</span>
+      <strong class="mobile-total">¥<span id="mobileTotal">0.00</span></strong>
+    </div>
+    <button class="mobile-pay-btn" type="button" id="mobilePayBtn" disabled>看结账单</button>
+  </div>
+
+  <div class="mobile-cart-backdrop" id="mobileCartBackdrop" aria-hidden="true">
+    <section class="mobile-cart-sheet" role="dialog" aria-modal="true" aria-labelledby="mobileCartTitle">
+      <div class="mobile-cart-head">
+        <h2 id="mobileCartTitle">已选商品</h2>
+        <button class="modal-close" type="button" id="closeMobileCartBtn" aria-label="关闭购物车">×</button>
+      </div>
+      <div class="mobile-cart-list" id="mobileCartList"></div>
+      <div class="mobile-cart-footer">
+        <div class="mobile-cart-total"><span>应收金额</span><strong>¥<span id="mobileCartTotal">0.00</span></strong></div>
+        <button class="mobile-cart-checkout" type="button" id="mobileCartCheckoutBtn" disabled>看结账单</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const defaultProducts = [
+      { id: "bag", name: "环保收纳袋", price: 3500, rule: "¥35 / 个", image: "native-bag" },
+      { id: "mousepad", name: "鼠标垫", price: 1590, rule: "¥15.9 / 个", image: "native-mousepad" },
+      { id: "plastic-card", name: "塑料卡套", price: 1590, rule: "¥15.9 / 个", image: "native-plastic-card" },
+      { id: "pvc-card", name: "PVC 卡套", price: 1890, rule: "¥18.9 / 个", image: "native-pvc-card" },
+      { id: "cute-keychain", name: "萌图亚克力挂件", price: 990, deals: [{ qty: 2, price: 1690 }], rule: "1 个 ¥9.9 · 2 个 ¥16.9", image: "native-cute-keychain" },
+      { id: "drawn-keychain", name: "手绘亚克力挂件", price: 660, deals: [{ qty: 2, price: 1160 }, { qty: 3, price: 1560 }], rule: "1 个 ¥6.6 · 2 个 ¥11.6 · 3 个 ¥15.6", image: "native-drawn-keychain" },
+      { id: "postcard", name: "明信片", price: 400, deals: [{ qty: 3, price: 1000 }], rule: "1 张 ¥4 · 3 张 ¥10", image: "native-postcard" },
+      { id: "plush-badge", name: "毛绒吧唧 58×58 加厚", price: 1500, rule: "¥15 / 个", image: "sprite-b pos-1" },
+      { id: "small-card", name: "小卡", price: 200, deals: [{ qty: 5, price: 800 }], rule: "1 张 ¥2 · 5 张 ¥8", image: "native-small-card" },
+      { id: "passport", name: "空白小猫护照本", price: 880, rule: "¥8.8 / 本", image: "sprite-b pos-3" },
+      { id: "synthetic-sticker", name: "合成纸小猫贴纸", price: 680, rule: "¥6.8 / 张", image: "native-synthetic-sticker" },
+      { id: "silver-sticker", name: "哑银小猫贴纸", price: 480, rule: "¥4.8 / 张", image: "native-silver-sticker" },
+      { id: "cat-mask", name: "猫猫口罩", price: 100, deals: [{ qty: 10, price: 800 }], rule: "1 个 ¥1 · 10 个 ¥8", image: "" },
+      { id: "acrylic-stand-large", name: "亚克力立体摆件（大）", price: 1990, rule: "¥19.9 / 个", image: "" },
+      { id: "acrylic-stand-small-round", name: "亚克力立体摆件（小、圆）", price: 1290, rule: "¥12.9 / 个", image: "" }
+    ];
+
+    let products = defaultProducts.map(product => ({ ...product, deals: (product.deals || []).map(deal => ({ ...deal })) }));
+
+    const cart = {};
+    let orderHistory = [];
+    let historyCloudState = "loading";
+    let historySelecting = false;
+    const selectedHistoryIds = new Set();
+    let historyTouch = null;
+    let productView = "text";
+    let editingImageData = "";
+    let editingOriginalImageClass = "";
+    let toastTimer;
+
+    const $ = selector => document.querySelector(selector);
+    const money = cents => (cents / 100).toFixed(2);
+
+    async function loadProducts() {
+      try {
+        const response = await fetch("/api/products", { headers: { "Accept": "application/json" } });
+        if (!response.ok) throw new Error(`读取失败（${response.status}）`);
+        const payload = await response.json();
+        const records = Array.isArray(payload) ? payload : (payload.data || payload.records || []);
+        products = mergeProductsWithDefaults(records);
+        renderProducts();
+        renderCart();
+      } catch (error) {
+        console.error("云端商品读取失败，暂用内置商品", error);
+      }
+    }
+
+    async function saveProductToStore(product, exists) {
+      const response = await fetch(exists ? `/api/products/${encodeURIComponent(product.id)}` : "/api/products", {
+        method: exists ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ ...product, deleted: false, sortOrder: products.findIndex(item => item.id === product.id) >= 0 ? products.findIndex(item => item.id === product.id) : products.length })
+      });
+      if (!response.ok) throw new Error(`保存失败（${response.status}）`);
+    }
+
+    async function deleteProductFromStore(product) {
+      const response = await fetch(`/api/products/${encodeURIComponent(product.id)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ ...product, deleted: true, sortOrder: Math.max(0, defaultProducts.findIndex(item => item.id === product.id)) })
+      });
+      if (!response.ok) throw new Error(`删除失败（${response.status}）`);
+    }
+
+    async function loadOrderHistory() {
+      try {
+        historyCloudState = "loading";
+        renderHistory();
+        const response = await fetch("/api/orders", { headers: { "Accept": "application/json" } });
+        if (!response.ok) throw new Error(`读取失败（${response.status}）`);
+        const payload = await response.json();
+        const records = Array.isArray(payload) ? payload : (payload.data || payload.records || []);
+        orderHistory = records.map(record => ({ ...record, id: record.id || record._id })).sort((a, b) => b.timestamp - a.timestamp);
+        historyCloudState = "ready";
+        renderHistory();
+      } catch (error) {
+        historyCloudState = "error";
+        renderHistory();
+        console.error("云端历史记录读取失败", error);
+      }
+    }
+
+    async function recordCurrentOrder() {
+      const { lines, count, total } = getCartSummary();
+      if (!lines.length) return;
+      const timestamp = Date.now();
+      const record = {
+        id: `${timestamp}-${Math.random().toString(36).slice(2, 8)}`,
+        timestamp,
+        total,
+        count,
+        items: lines.map(({ product, qty }) => ({ name: product.name, qty })),
+        note: $("#orderNote").value.trim()
+      };
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(record)
+      });
+      if (!response.ok) throw new Error(`保存失败（${response.status}）`);
+      const payload = await response.json().catch(() => ({}));
+      orderHistory.unshift({ ...record, ...(payload.record || payload.data || {}), id: payload.id || payload._id || record.id });
+      historyCloudState = "ready";
+      renderHistory();
+    }
+
+    function formatHistoryTime(timestamp, full = false) {
+      const date = new Date(timestamp);
+      if (full) {
+        const pad = number => String(number).padStart(2, "0");
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      }
+      return new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).format(date);
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+    }
+
+    function renderHistory() {
+      $("#historyCount").textContent = orderHistory.length > 99 ? "99+" : orderHistory.length;
+      $("#historyPanel").classList.toggle("selecting", historySelecting);
+      $("#historySelectToolbar").classList.toggle("show", historySelecting);
+      $("#historyExportModeBtn").textContent = historySelecting ? "取消" : "导出";
+
+      if (historyCloudState === "loading") {
+        $("#historyList").innerHTML = `<div class="history-empty"><span class="empty-cat" aria-hidden="true">🐱</span>正在读取云端记录…</div>`;
+      } else if (historyCloudState === "error") {
+        $("#historyList").innerHTML = `<div class="history-empty"><span class="empty-cat" aria-hidden="true">🐱</span>云数据库暂时无法连接<br><button class="clear-btn" type="button" data-history-retry>重新加载</button></div>`;
+      } else if (!orderHistory.length) {
+        $("#historyList").innerHTML = `<div class="history-empty"><span class="empty-cat" aria-hidden="true">🐈</span>还没有历史订单</div>`;
+      } else {
+        $("#historyList").innerHTML = orderHistory.map(record => `
+          <div class="history-item-shell" data-history-shell="${record.id}">
+            <button class="swipe-delete" type="button" data-history-delete="${record.id}">删除</button>
+            <article class="history-row" data-history-row="${record.id}">
+              <div class="history-summary" data-history-toggle="${record.id}">
+                <input class="history-check" type="checkbox" data-history-check="${record.id}" aria-label="选择此条记录" ${selectedHistoryIds.has(record.id) ? "checked" : ""}>
+                <div><div class="history-time">${formatHistoryTime(record.timestamp)}</div><div class="history-piece-count">${record.count} 件商品</div></div>
+                <strong class="history-amount">¥${money(record.total)}</strong>
+                <span class="history-arrow" aria-hidden="true">⌄</span>
+              </div>
+              <div class="history-detail">
+                ${record.items.map(item => `<div class="history-detail-line"><span>${escapeHtml(item.name)}</span><strong>× ${item.qty}</strong></div>`).join("")}
+                <div class="history-note"><strong>备注：</strong>${record.note ? escapeHtml(record.note) : "无"}</div>
+              </div>
+            </article>
+          </div>
+        `).join("");
+      }
+      updateHistorySelectionUI();
+    }
+
+    function updateHistorySelectionUI() {
+      const validIds = new Set(orderHistory.map(record => record.id));
+      [...selectedHistoryIds].forEach(id => { if (!validIds.has(id)) selectedHistoryIds.delete(id); });
+      $("#historySelectCount").textContent = `已选 ${selectedHistoryIds.size} 条`;
+      $("#exportSelectedBtn").disabled = selectedHistoryIds.size === 0;
+      $("#selectAllHistory").checked = orderHistory.length > 0 && selectedHistoryIds.size === orderHistory.length;
+    }
+
+    function openHistory() {
+      renderHistory();
+      $("#historyBackdrop").classList.add("open");
+      $("#historyBackdrop").setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      $("#closeHistoryBtn").focus();
+    }
+
+    function closeHistory() {
+      $("#historyBackdrop").classList.remove("open");
+      $("#historyBackdrop").setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      historySelecting = false;
+      selectedHistoryIds.clear();
+      renderHistory();
+    }
+
+    function toggleHistoryExportMode() {
+      if (!orderHistory.length) {
+        showToast("还没有可以导出的记录");
+        return;
+      }
+      historySelecting = !historySelecting;
+      selectedHistoryIds.clear();
+      renderHistory();
+    }
+
+    async function deleteHistoryRecord(id) {
+      try {
+        const response = await fetch(`/api/orders/${encodeURIComponent(id)}`, { method: "DELETE", headers: { "Accept": "application/json" } });
+        if (!response.ok) throw new Error(`删除失败（${response.status}）`);
+        orderHistory = orderHistory.filter(record => record.id !== id);
+        selectedHistoryIds.delete(id);
+        renderHistory();
+        showToast("历史记录已删除");
+      } catch (error) {
+        console.error("云端历史记录删除失败", error);
+        showToast("删除失败，请检查网络后重试");
+      }
+    }
+
+    function toggleHistoryRecord(id) {
+      const row = document.querySelector(`[data-history-row="${id}"]`);
+      if (!row) return;
+      row.classList.toggle("expanded");
+    }
+
+    function closeSwipedHistoryRows(except = null) {
+      document.querySelectorAll(".history-row.swiped").forEach(row => {
+        if (row !== except) row.classList.remove("swiped");
+      });
+    }
+
+    function finishHistorySwipe() {
+      if (!historyTouch) return;
+      historyTouch.row.style.transform = "";
+      historyTouch.row.classList.toggle("swiped", historyTouch.currentX < -41);
+      historyTouch = null;
+    }
+
+    function toggleHistorySelection(id) {
+      if (selectedHistoryIds.has(id)) selectedHistoryIds.delete(id);
+      else selectedHistoryIds.add(id);
+      renderHistory();
+    }
+
+    function selectAllHistory(checked) {
+      selectedHistoryIds.clear();
+      if (checked) orderHistory.forEach(record => selectedHistoryIds.add(record.id));
+      renderHistory();
+    }
+
+    function xmlEscape(value) {
+      return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[char]);
+    }
+
+    function bytes16(value) {
+      const bytes = new Uint8Array(2);
+      new DataView(bytes.buffer).setUint16(0, value, true);
+      return bytes;
+    }
+
+    function bytes32(value) {
+      const bytes = new Uint8Array(4);
+      new DataView(bytes.buffer).setUint32(0, value >>> 0, true);
+      return bytes;
+    }
+
+    function joinBytes(parts) {
+      const output = new Uint8Array(parts.reduce((sum, part) => sum + part.length, 0));
+      let offset = 0;
+      parts.forEach(part => { output.set(part, offset); offset += part.length; });
+      return output;
+    }
+
+    const crcTable = (() => {
+      const table = new Uint32Array(256);
+      for (let i = 0; i < 256; i++) {
+        let value = i;
+        for (let bit = 0; bit < 8; bit++) value = (value & 1) ? (0xedb88320 ^ (value >>> 1)) : (value >>> 1);
+        table[i] = value >>> 0;
+      }
+      return table;
+    })();
+
+    function crc32(bytes) {
+      let crc = 0xffffffff;
+      for (const byte of bytes) crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+      return (crc ^ 0xffffffff) >>> 0;
+    }
+
+    function createZip(files) {
+      const encoder = new TextEncoder();
+      const localParts = [];
+      const centralParts = [];
+      let offset = 0;
+      const now = new Date();
+      const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | Math.floor(now.getSeconds() / 2);
+      const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+
+      files.forEach(file => {
+        const name = encoder.encode(file.name);
+        const data = encoder.encode(file.content);
+        const crc = crc32(data);
+        const local = joinBytes([
+          bytes32(0x04034b50), bytes16(20), bytes16(0x0800), bytes16(0), bytes16(dosTime), bytes16(dosDate),
+          bytes32(crc), bytes32(data.length), bytes32(data.length), bytes16(name.length), bytes16(0), name, data
+        ]);
+        const central = joinBytes([
+          bytes32(0x02014b50), bytes16(20), bytes16(20), bytes16(0x0800), bytes16(0), bytes16(dosTime), bytes16(dosDate),
+          bytes32(crc), bytes32(data.length), bytes32(data.length), bytes16(name.length), bytes16(0), bytes16(0), bytes16(0),
+          bytes16(0), bytes32(0), bytes32(offset), name
+        ]);
+        localParts.push(local);
+        centralParts.push(central);
+        offset += local.length;
+      });
+
+      const central = joinBytes(centralParts);
+      const end = joinBytes([
+        bytes32(0x06054b50), bytes16(0), bytes16(0), bytes16(files.length), bytes16(files.length),
+        bytes32(central.length), bytes32(offset), bytes16(0)
+      ]);
+      return joinBytes([...localParts, central, end]);
+    }
+
+    function exportSelectedHistory() {
+      const records = orderHistory.filter(record => selectedHistoryIds.has(record.id));
+      if (!records.length) return;
+      const rows = [
+        ["时间", "商品详情", "金额", "备注"],
+        ...records.map(record => [
+          formatHistoryTime(record.timestamp, true),
+          record.items.map(item => `${item.name} × ${item.qty}`).join("；"),
+          money(record.total),
+          record.note || ""
+        ])
+      ];
+      const sheetRows = rows.map((row, rowIndex) => `<row r="${rowIndex + 1}">${row.map((cell, columnIndex) => {
+        const ref = `${String.fromCharCode(65 + columnIndex)}${rowIndex + 1}`;
+        if (columnIndex === 2 && rowIndex > 0) return `<c r="${ref}"><v>${Number(cell)}</v></c>`;
+        return `<c r="${ref}" t="inlineStr"><is><t>${xmlEscape(cell)}</t></is></c>`;
+      }).join("")}</row>`).join("");
+      const files = [
+        { name: "[Content_Types].xml", content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>` },
+        { name: "_rels/.rels", content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>` },
+        { name: "xl/workbook.xml", content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="义卖历史记录" sheetId="1" r:id="rId1"/></sheets></workbook>` },
+        { name: "xl/_rels/workbook.xml.rels", content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>` },
+        { name: "xl/worksheets/sheet1.xml", content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="22" customWidth="1"/><col min="2" max="2" width="55" customWidth="1"/><col min="3" max="3" width="12" customWidth="1"/><col min="4" max="4" width="35" customWidth="1"/></cols><sheetData>${sheetRows}</sheetData></worksheet>` }
+      ];
+      const blob = new Blob([createZip(files)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const now = new Date();
+      const pad = number => String(number).padStart(2, "0");
+      link.href = url;
+      link.download = `猫猫周边义卖历史记录_${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast(`已导出 ${records.length} 条记录`);
+    }
+
+    function buildProductRule(product) {
+      const priceText = cents => (cents / 100).toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1");
+      const parts = [`1 个 ¥${priceText(product.price)}`];
+      (product.deals || []).sort((a, b) => a.qty - b.qty).forEach(deal => parts.push(`${deal.qty} 个 ¥${priceText(deal.price)}`));
+      return parts.join(" · ");
+    }
+
+    function normalizeProduct(product) {
+      const normalized = {
+        id: String(product.id), name: String(product.name || "未命名商品"), price: Number(product.price) || 0,
+        deals: Array.isArray(product.deals) ? product.deals.map(deal => ({ qty: Number(deal.qty), price: Number(deal.price) })).filter(deal => deal.qty > 1 && deal.price > 0) : [],
+        image: product.image || "", imageData: product.imageData || ""
+      };
+      normalized.rule = product.rule || buildProductRule(normalized);
+      return normalized;
+    }
+
+    function mergeProductsWithDefaults(records) {
+      const cloudRecords = Array.isArray(records) ? records : [];
+      const cloudById = new Map(cloudRecords.map(record => [String(record.id), record]));
+      const defaultIds = new Set(defaultProducts.map(product => product.id));
+      const merged = [];
+      defaultProducts.forEach(defaultProduct => {
+        const cloudProduct = cloudById.get(defaultProduct.id);
+        if (cloudProduct?.deleted === true) return;
+        merged.push(normalizeProduct(cloudProduct ? { ...defaultProduct, ...cloudProduct } : defaultProduct));
+      });
+      cloudRecords.forEach(record => {
+        if (!defaultIds.has(String(record.id)) && record.deleted !== true) merged.push(normalizeProduct(record));
+      });
+      return merged;
+    }
+
+    function renderEditorProducts() {
+      $("#editorProductList").innerHTML = products.map(product => {
+        const hasImage = Boolean(product.image || product.imageData);
+        return `<article class="editor-item"><div class="editor-thumb ${product.image || "empty"}" style="${product.imageData ? `background-image:url('${product.imageData}')` : ""}">${hasImage ? "" : "暂无图片"}</div><div><h3>${escapeHtml(product.name)}</h3><p>${escapeHtml(product.rule)}</p></div><div class="editor-actions"><button class="editor-mini-btn" type="button" data-product-edit="${product.id}">编辑</button><button class="editor-mini-btn delete" type="button" data-product-delete="${product.id}">删除</button></div></article>`;
+      }).join("");
+    }
+
+    function openEditor() { renderEditorProducts(); $("#editorBackdrop").classList.add("open"); $("#editorBackdrop").setAttribute("aria-hidden", "false"); document.body.style.overflow = "hidden"; }
+    function closeEditor() { closeProductForm(); $("#editorBackdrop").classList.remove("open"); $("#editorBackdrop").setAttribute("aria-hidden", "true"); document.body.style.overflow = ""; }
+    function updateProductImagePreview() { const preview = $("#productImagePreview"); preview.className = `image-preview ${editingOriginalImageClass}`; preview.style.backgroundImage = editingImageData ? `url('${editingImageData}')` : ""; preview.textContent = editingImageData || editingOriginalImageClass ? "" : "暂无图片"; }
+    function openProductForm(product = null) {
+      const deals = product?.deals || []; $("#productForm").reset(); $("#productFormTitle").textContent = product ? "编辑商品" : "添加商品"; $("#editingProductId").value = product?.id || ""; $("#productNameInput").value = product?.name || ""; $("#productPriceInput").value = product ? (product.price / 100).toFixed(2).replace(/\.00$/, "") : ""; $("#dealPrice1Input").value = deals[0] ? (deals[0].price / 100).toFixed(2).replace(/\.00$/, "") : ""; $("#dealQty1Input").value = deals[0]?.qty || ""; $("#dealPrice2Input").value = deals[1] ? (deals[1].price / 100).toFixed(2).replace(/\.00$/, "") : ""; $("#dealQty2Input").value = deals[1]?.qty || ""; editingImageData = product?.imageData || ""; editingOriginalImageClass = product?.image || ""; updateProductImagePreview(); $("#productFormWrap").classList.add("open"); $("#productNameInput").focus();
+    }
+    function closeProductForm() { $("#productFormWrap").classList.remove("open"); editingImageData = ""; editingOriginalImageClass = ""; $("#productImageInput").value = ""; }
+    function compressProductImage(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onerror = () => reject(new Error("图片读取失败")); reader.onload = () => { const image = new Image(); image.onerror = () => reject(new Error("图片格式不支持")); image.onload = () => { const maxSide = 640; const scale = Math.min(1, maxSide / Math.max(image.width, image.height)); const canvas = document.createElement("canvas"); canvas.width = Math.max(1, Math.round(image.width * scale)); canvas.height = Math.max(1, Math.round(image.height * scale)); const context = canvas.getContext("2d"); context.fillStyle = "#fffaf0"; context.fillRect(0, 0, canvas.width, canvas.height); context.drawImage(image, 0, 0, canvas.width, canvas.height); resolve(canvas.toDataURL("image/jpeg", .78)); }; image.src = reader.result; }; reader.readAsDataURL(file); }); }
+    async function submitProductForm(event) {
+      event.preventDefault(); const id = $("#editingProductId").value || `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`; const name = $("#productNameInput").value.trim(); const price = Math.round(Number($("#productPriceInput").value) * 100); const deals = [];
+      for (const index of [1, 2]) { const dealPrice = $(`#dealPrice${index}Input`).value; const dealQty = $(`#dealQty${index}Input`).value; if (dealPrice || dealQty) { if (!dealPrice || !dealQty || Number(dealQty) < 2) return showToast(`请完整填写优惠价 ${index}`); deals.push({ qty: Number(dealQty), price: Math.round(Number(dealPrice) * 100) }); } }
+      if (!name || !Number.isFinite(price) || price <= 0) return showToast("请填写商品名称和正确单价"); const product = normalizeProduct({ id, name, price, deals, image: editingImageData ? "" : editingOriginalImageClass, imageData: editingImageData }); product.rule = buildProductRule(product); const existingIndex = products.findIndex(item => item.id === id);
+      try { await saveProductToStore(product, existingIndex >= 0); if (existingIndex >= 0) products.splice(existingIndex, 1, product); else products.push(product); renderProducts(); renderCart(); renderEditorProducts(); closeProductForm(); showToast(existingIndex >= 0 ? "商品已更新" : "商品已添加"); } catch (error) { console.error("商品保存失败", error); showToast("商品保存失败，请稍后重试"); }
+    }
+    async function deleteProduct(id) { const product = products.find(item => item.id === id); if (!product || !window.confirm(`确定删除“${product.name}”吗？`)) return; try { await deleteProductFromStore(product); products = products.filter(item => item.id !== id); delete cart[id]; renderProducts(); renderCart(); renderEditorProducts(); showToast("商品已删除"); } catch (error) { console.error("商品删除失败", error); showToast("删除失败，请稍后重试"); } }
+
+    function bestPrice(product, qty) {
+      if (!qty) return 0;
+      const options = [{ qty: 1, price: product.price }, ...(product.deals || [])];
+      const dp = Array(qty + 1).fill(Infinity);
+      dp[0] = 0;
+      for (let i = 1; i <= qty; i++) {
+        for (const option of options) {
+          if (i >= option.qty) dp[i] = Math.min(dp[i], dp[i - option.qty] + option.price);
+        }
+      }
+      return dp[qty];
+    }
+
+    function fullPrice(product, qty) { return product.price * qty; }
+
+    function getCartSummary() {
+      let count = 0;
+      let total = 0;
+      const lines = products.filter(p => cart[p.id]).map(product => {
+        const qty = cart[product.id];
+        const subtotal = bestPrice(product, qty);
+        const saved = fullPrice(product, qty) - subtotal;
+        count += qty;
+        total += subtotal;
+        return { product, qty, subtotal, saved };
+      });
+      return { lines, count, total };
+    }
+
+    function renderProducts() {
+      $("#productGrid").classList.toggle("photo-view", productView === "photo");
+      $("#productGrid").innerHTML = products.map(product => `
+        <article class="product-card">
+          <div class="product-image ${product.image || "no-image"}" style="${product.imageData ? `background-image:url('${product.imageData}')` : ""}" role="img" aria-label="${escapeHtml(product.name)}商品图"></div>
+          <div class="product-info">
+            <h3 class="product-name">${escapeHtml(product.name)}</h3>
+            <p class="price-rule">${escapeHtml(product.rule)}</p>
+          </div>
+          <div class="add-row">
+            <button class="qty-btn" type="button" data-product="${product.id}" data-delta="-1" aria-label="减少${escapeHtml(product.name)}数量">−</button>
+            <span class="product-qty" id="product-${product.id}">${cart[product.id] || 0}</span>
+            <button class="qty-btn" type="button" data-product="${product.id}" data-delta="1" aria-label="增加${escapeHtml(product.name)}数量">+</button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function setProductView(view) {
+      productView = view === "photo" ? "photo" : "text";
+      document.querySelectorAll("[data-view]").forEach(button => {
+        const active = button.dataset.view === productView;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+      renderProducts();
+    }
+
+    function renderCart() {
+      const { lines, count, total } = getCartSummary();
+      $("#itemCount").textContent = `${count} 件商品`;
+      $("#totalAmount").textContent = money(total);
+      $("#checkoutBtn").disabled = count === 0;
+      $("#mobileCount").textContent = count ? `${count} 件商品` : "还未选择商品";
+      $("#mobileTotal").textContent = money(total);
+      $("#mobileCartTotal").textContent = money(total);
+      $("#mobileCartBadge").textContent = count > 99 ? "99+" : count;
+      $("#mobilePayBtn").disabled = count === 0;
+      $("#mobileCartCheckoutBtn").disabled = count === 0;
+
+      if (!lines.length) {
+        const emptyMarkup = `
+          <div class="empty-state">
+            <span class="empty-cat" aria-hidden="true">🐈</span>
+            <strong>订单还是空的</strong>
+            选择商品加入吧
+          </div>`;
+        $("#cartList").innerHTML = emptyMarkup;
+        $("#mobileCartList").innerHTML = emptyMarkup;
+      } else {
+        const cartMarkup = lines.map(({ product, qty, subtotal, saved }) => `
+          <div class="cart-item">
+            <div>
+              <h3 class="cart-name">${escapeHtml(product.name)}</h3>
+              <p class="cart-rule">${escapeHtml(product.rule)}</p>
+            </div>
+            <strong class="cart-subtotal">¥${money(subtotal)}</strong>
+            <div class="cart-controls">
+              <button class="qty-btn" type="button" data-cart="${product.id}" data-delta="-1" aria-label="减少${product.name}">−</button>
+              <span class="cart-qty">${qty}</span>
+              <button class="qty-btn" type="button" data-cart="${product.id}" data-delta="1" aria-label="增加${product.name}">+</button>
+            </div>
+            <span class="saving">${saved > 0 ? `已省 ¥${money(saved)}` : ""}</span>
+          </div>
+        `).join("");
+        $("#cartList").innerHTML = cartMarkup;
+        $("#mobileCartList").innerHTML = cartMarkup;
+      }
+
+      syncProductQuantities();
+      updateGifts(total);
+    }
+
+    function updateGifts(total) {
+      const has35 = total >= 3500 && total < 5000;
+      const has50 = total >= 5000;
+      $("#progressBar").style.width = `${Math.min(total / 5000 * 100, 100)}%`;
+      $("#gift35").classList.toggle("active", has35);
+      $("#gift50").classList.toggle("active", has50);
+      $("#gift35").textContent = `${has35 ? "✓" : "○"} 满 ¥35（未满 ¥50）送 10 个小猫口罩`;
+      $("#gift50").textContent = `${has50 ? "✓" : "○"} 满 ¥50 送 1 个亚克力立牌（不叠加）`;
+      if (has50) {
+        $("#giftStatus").textContent = "已获得 1 个亚克力立牌";
+      } else if (has35) {
+        $("#giftStatus").textContent = `再 ¥${money(5000 - total)} 升级为亚克力立牌`;
+      } else {
+        $("#giftStatus").textContent = `再 ¥${money(3500 - total)} 得小猫口罩`;
+      }
+    }
+
+    function changeCart(id, delta) {
+      cart[id] = Math.min(99, (cart[id] || 0) + delta);
+      if (cart[id] <= 0) delete cart[id];
+      renderCart();
+    }
+
+    function syncProductQuantities() {
+      products.forEach(product => {
+        const quantity = $("#product-" + product.id);
+        if (quantity) quantity.textContent = cart[product.id] || 0;
+      });
+    }
+
+    function clearOrder() {
+      if (!Object.keys(cart).length) return;
+      Object.keys(cart).forEach(id => delete cart[id]);
+      $("#orderNote").value = "";
+      renderCart();
+      showToast("订单已清空");
+    }
+
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      $("#toast").textContent = message;
+      $("#toast").classList.add("show");
+      toastTimer = setTimeout(() => $("#toast").classList.remove("show"), 1500);
+    }
+
+    function openCheckout() {
+      const { lines, total } = getCartSummary();
+      if (!lines.length) return;
+
+      $("#receipt").innerHTML = `
+        ${lines.map(({ product, qty, subtotal }) => `
+          <div class="receipt-row">
+            <span>${escapeHtml(product.name)}</span><span>× ${qty}</span><span>¥${money(subtotal)}</span>
+          </div>`).join("")}
+        <div class="receipt-total"><strong>应收合计</strong><strong>¥${money(total)}</strong></div>`;
+
+      let gifts = "";
+      if (total >= 5000) {
+        gifts = "<p>✓ 亚克力立牌 × 1</p>";
+      } else if (total >= 3500) {
+        gifts = "<p>✓ 小猫口罩 × 10</p>";
+      } else {
+        gifts = `<p class="not-reached">本单暂未达到满赠门槛（满 ¥35 送口罩，满 ¥50 升级为 1 个立牌）</p>`;
+      }
+      $("#giftConfirm").innerHTML = `<h3>🎁 本单赠品</h3>${gifts}`;
+
+      $("#checkoutContent").style.display = "block";
+      $("#successScreen").classList.remove("show");
+      $("#checkoutBackdrop").classList.add("open");
+      $("#checkoutBackdrop").setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      $("#closeModalBtn").focus();
+    }
+
+    function closeCheckout() {
+      $("#checkoutBackdrop").classList.remove("open");
+      $("#checkoutBackdrop").setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    }
+
+    function openMobileCart() {
+      $("#mobileCartBackdrop").classList.add("open");
+      $("#mobileCartBackdrop").setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      $("#closeMobileCartBtn").focus();
+    }
+
+    function closeMobileCart() {
+      $("#mobileCartBackdrop").classList.remove("open");
+      $("#mobileCartBackdrop").setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    }
+
+    function checkoutFromMobileCart() {
+      closeMobileCart();
+      openCheckout();
+    }
+
+    async function finishPayment() {
+      const { total } = getCartSummary();
+      const giftText = total >= 5000 ? "记得交付：1 个亚克力立牌。" : total >= 3500 ? "记得交付：10 个小猫口罩。" : "本单无赠品。";
+      const button = $("#finishBtn");
+      button.disabled = true;
+      button.textContent = "正在保存…";
+      try {
+        await recordCurrentOrder();
+        $("#checkoutContent").style.display = "none";
+        $("#successText").textContent = `本单应收 ¥${money(total)}。${giftText}`;
+        $("#successScreen").classList.add("show");
+        $("#newOrderBtn").focus();
+      } catch (error) {
+        console.error("订单保存失败", error);
+        showToast("云端保存失败，请检查网络后重试");
+      } finally {
+        button.disabled = false;
+        button.textContent = "结束本单";
+      }
+    }
+
+    function startNewOrder() {
+      Object.keys(cart).forEach(id => delete cart[id]);
+      $("#orderNote").value = "";
+      renderProducts();
+      renderCart();
+      closeCheckout();
+      showToast("已开始新订单");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    $("#productGrid").addEventListener("click", event => {
+      const button = event.target.closest("[data-product]");
+      if (button) changeCart(button.dataset.product, Number(button.dataset.delta));
+    });
+    document.querySelectorAll("[data-view]").forEach(button => {
+      button.addEventListener("click", () => setProductView(button.dataset.view));
+    });
+
+    document.addEventListener("click", event => {
+      const button = event.target.closest("[data-cart]");
+      if (button) changeCart(button.dataset.cart, Number(button.dataset.delta));
+    });
+    document.addEventListener("dblclick", event => {
+      if (event.target.closest("button")) event.preventDefault();
+    }, { passive: false });
+
+    $("#clearOrderBtn").addEventListener("click", clearOrder);
+    $("#checkoutBtn").addEventListener("click", openCheckout);
+    $("#mobilePayBtn").addEventListener("click", openCheckout);
+    $("#mobileCartBtn").addEventListener("click", openMobileCart);
+    $("#closeMobileCartBtn").addEventListener("click", closeMobileCart);
+    $("#mobileCartCheckoutBtn").addEventListener("click", checkoutFromMobileCart);
+    $("#closeModalBtn").addEventListener("click", closeCheckout);
+    $("#backBtn").addEventListener("click", closeCheckout);
+    $("#finishBtn").addEventListener("click", finishPayment);
+    $("#newOrderBtn").addEventListener("click", startNewOrder);
+    $("#openHistoryBtn").addEventListener("click", openHistory);
+    $("#openEditorBtn").addEventListener("click", openEditor);
+    $("#closeEditorBtn").addEventListener("click", closeEditor);
+    $("#addProductBtn").addEventListener("click", () => openProductForm());
+    $("#closeProductFormBtn").addEventListener("click", closeProductForm);
+    $("#cancelProductFormBtn").addEventListener("click", closeProductForm);
+    $("#productForm").addEventListener("submit", submitProductForm);
+    $("#removeProductImageBtn").addEventListener("click", () => { editingImageData = ""; editingOriginalImageClass = ""; $("#productImageInput").value = ""; updateProductImagePreview(); });
+    $("#productImageInput").addEventListener("change", async event => {
+      const file = event.target.files?.[0]; if (!file) return;
+      try { editingImageData = await compressProductImage(file); editingOriginalImageClass = ""; updateProductImagePreview(); } catch (error) { console.error(error); showToast("图片处理失败"); }
+    });
+    $("#editorProductList").addEventListener("click", event => {
+      const edit = event.target.closest("[data-product-edit]");
+      const remove = event.target.closest("[data-product-delete]");
+      if (edit) openProductForm(products.find(product => product.id === edit.dataset.productEdit));
+      if (remove) deleteProduct(remove.dataset.productDelete);
+    });
+    $("#closeHistoryBtn").addEventListener("click", closeHistory);
+    $("#historyExportModeBtn").addEventListener("click", toggleHistoryExportMode);
+    $("#exportSelectedBtn").addEventListener("click", exportSelectedHistory);
+    $("#selectAllHistory").addEventListener("change", event => selectAllHistory(event.target.checked));
+    $("#historyList").addEventListener("click", event => {
+      if (event.target.closest("[data-history-retry]")) {
+        loadOrderHistory();
+        return;
+      }
+      const deleteButton = event.target.closest("[data-history-delete]");
+      if (deleteButton) {
+        deleteHistoryRecord(deleteButton.dataset.historyDelete);
+        return;
+      }
+      const checkbox = event.target.closest("[data-history-check]");
+      if (checkbox) {
+        toggleHistorySelection(checkbox.dataset.historyCheck);
+        return;
+      }
+      const summary = event.target.closest("[data-history-toggle]");
+      if (!summary) return;
+      const row = summary.closest("[data-history-row]");
+      if (row?.classList.contains("swiped")) {
+        row.classList.remove("swiped");
+        return;
+      }
+      closeSwipedHistoryRows(row);
+      if (historySelecting) toggleHistorySelection(summary.dataset.historyToggle);
+      else toggleHistoryRecord(summary.dataset.historyToggle);
+    });
+    $("#historyList").addEventListener("touchstart", event => {
+      if (historySelecting || event.touches.length !== 1) return;
+      const row = event.target.closest("[data-history-row]");
+      if (!row) return;
+      closeSwipedHistoryRows(row);
+      const startOffset = row.classList.contains("swiped") ? -82 : 0;
+      historyTouch = { row, startX: event.touches[0].clientX, startY: event.touches[0].clientY, startOffset, currentX: startOffset };
+    }, { passive: true });
+    $("#historyList").addEventListener("touchmove", event => {
+      if (!historyTouch || event.touches.length !== 1) return;
+      const dx = event.touches[0].clientX - historyTouch.startX;
+      const dy = event.touches[0].clientY - historyTouch.startY;
+      if (Math.abs(dx) <= Math.abs(dy)) return;
+      historyTouch.currentX = Math.max(-92, Math.min(0, historyTouch.startOffset + dx));
+      historyTouch.row.style.transform = `translateX(${historyTouch.currentX}px)`;
+    }, { passive: true });
+    $("#historyList").addEventListener("touchend", finishHistorySwipe);
+    $("#historyList").addEventListener("touchcancel", finishHistorySwipe);
+    $("#checkoutBackdrop").addEventListener("click", event => {
+      if (event.target === $("#checkoutBackdrop")) closeCheckout();
+    });
+    $("#mobileCartBackdrop").addEventListener("click", event => {
+      if (event.target === $("#mobileCartBackdrop")) closeMobileCart();
+    });
+    $("#historyBackdrop").addEventListener("click", event => {
+      if (event.target === $("#historyBackdrop")) closeHistory();
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key !== "Escape") return;
+      if ($("#checkoutBackdrop").classList.contains("open")) closeCheckout();
+      if ($("#mobileCartBackdrop").classList.contains("open")) closeMobileCart();
+      if ($("#historyBackdrop").classList.contains("open")) closeHistory();
+      if ($("#productFormWrap").classList.contains("open")) closeProductForm();
+      else if ($("#editorBackdrop").classList.contains("open")) closeEditor();
+    });
+
+    const today = new Date();
+    $("#dateText").textContent = new Intl.DateTimeFormat("zh-CN", { month: "long", day: "numeric", weekday: "short" }).format(today);
+    renderProducts();
+    renderCart();
+    renderHistory();
+    loadOrderHistory();
+    loadProducts();
+  </script>
+</body>
+</html>
+

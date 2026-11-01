@@ -1,0 +1,63 @@
+{
+  "application": {
+    "name": "猫猫周边义卖收银台",
+    "type": "website-app",
+    "authenticationRequired": false,
+    "sharedDataAcrossVisitors": true
+  },
+  "database": {
+    "collections": [
+      {
+        "name": "charity_orders",
+        "indexes": [
+          { "fields": ["id"], "unique": true },
+          { "fields": ["timestamp"], "order": "desc" }
+        ],
+        "fields": {
+          "id": { "type": "string", "required": true, "maxLength": 80 },
+          "timestamp": { "type": "integer", "required": true },
+          "total": { "type": "integer", "required": true, "minimum": 0, "description": "Amount in cents" },
+          "count": { "type": "integer", "required": true, "minimum": 1, "maximum": 9900 },
+          "items": { "type": "array", "required": true, "maxItems": 100 },
+          "note": { "type": "string", "required": false, "default": "", "maxLength": 200 },
+          "createdAt": { "type": "serverTimestamp", "required": true }
+        }
+      },
+      {
+        "name": "charity_products",
+        "indexes": [
+          { "fields": ["id"], "unique": true },
+          { "fields": ["sortOrder"], "order": "asc" }
+        ],
+        "fields": {
+          "id": { "type": "string", "required": true, "maxLength": 80 },
+          "name": { "type": "string", "required": true, "maxLength": 40 },
+          "price": { "type": "integer", "required": true, "minimum": 1, "description": "Unit price in cents" },
+          "deals": { "type": "array", "required": false, "maxItems": 2, "default": [] },
+          "rule": { "type": "string", "required": true, "maxLength": 120 },
+          "image": { "type": "string", "required": false, "default": "", "maxLength": 80 },
+          "imageData": { "type": "string", "required": false, "default": "", "maxLength": 500000 },
+          "deleted": { "type": "boolean", "required": false, "default": false },
+          "sortOrder": { "type": "integer", "required": true, "minimum": 0 },
+          "updatedAt": { "type": "integer", "required": false }
+        }
+      }
+    ]
+  },
+  "api": [
+    { "method": "GET", "path": "/api/orders", "operation": "list", "collection": "charity_orders", "sort": "timestamp desc", "limit": 1000 },
+    { "method": "POST", "path": "/api/orders", "operation": "create-idempotent", "collection": "charity_orders", "idempotencyField": "id" },
+    { "method": "DELETE", "path": "/api/orders/:id", "operation": "delete", "collection": "charity_orders" },
+    { "method": "GET", "path": "/api/products", "operation": "list", "collection": "charity_products", "sort": "sortOrder asc" },
+    { "method": "POST", "path": "/api/products", "operation": "create", "collection": "charity_products" },
+    { "method": "PUT", "path": "/api/products/:id", "operation": "upsert", "collection": "charity_products" },
+    { "method": "DELETE", "path": "/api/products/:id", "operation": "delete", "collection": "charity_products" }
+  ],
+  "permissions": {
+    "read": "public",
+    "create": "public",
+    "update": "public",
+    "delete": "public"
+  }
+}
+
