@@ -192,6 +192,15 @@
     .native-passport { background-image: url("assets/native-passport-v2.png"); }
     .native-synthetic-sticker { background-image: url("assets/native-synthetic-sticker-v2.png"); }
     .native-silver-sticker { background-image: url("assets/native-silver-sticker-v2.png"); }
+    .new-irregular-sticky-notes { background-image: url("assets/new-irregular-sticky-notes.png"); }
+    .new-twill-scarf { background-image: url("assets/new-twill-scarf.png"); }
+    .new-mouse-toy { background-image: url("assets/new-mouse-toy.png"); }
+    .new-card-sleeve { background-image: url("assets/new-card-sleeve.png"); }
+    .new-cat-keycaps { background-image: url("assets/new-cat-keycaps.png"); }
+    .new-round-plush-badge { background-image: url("assets/new-round-plush-badge.png"); }
+    .new-cat-ear-plush-badge { background-image: url("assets/new-cat-ear-plush-badge.png"); }
+    .new-wallet { background-image: url("assets/new-wallet.png"); }
+    .new-blind-box { background-image: url("assets/new-blind-box.png"); }
     .photo-view .sprite-b { background-image: url("assets/products-b.png"); background-size: 300% 300%; }
     .photo-view .pos-1 { background-position: 50% 0; }
     .photo-view .pos-3 { background-position: 0 50%; }
@@ -346,6 +355,8 @@
     .gift-confirm h3 { margin: 0 0 7px; color: var(--green); font-size: 14px; }
     .gift-confirm p { margin: 4px 0; color: #486453; font-size: 13px; }
     .gift-confirm .not-reached { color: var(--muted); }
+    .draw-reminders { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #b8d2c0; }
+    .draw-reminders h3 { margin-bottom: 7px; }
 
     .note-field { display: grid; gap: 7px; margin: 14px 22px 0; color: var(--muted); font-size: 13px; font-weight: 700; }
     .note-field textarea { width: 100%; min-height: 74px; resize: vertical; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; outline: none; background: white; color: var(--ink); font: inherit; font-weight: 400; }
@@ -838,8 +849,28 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@tencent-ai/workbuddy-cloud-sdk@dev/lib/index.global.js"></script>
   <script>
+    // WorkBuddy 云服务公开配置（只含无权限的 publishableKey，服务端按域名 Origin 校验）
+    const cloud = WorkBuddyCloud.createWorkBuddyCloud({
+      endpoint: "https://cat-charity.app.workbuddy.host",
+      oauthRelayBaseUrl: "https://www.workbuddy.cn/v2/as/genie-baas/oauth",
+      publishableKey: "wbpk_8huzOt3sPBig705YqNuV4C_RYV9FrEaTcdF65bgqdeUuEj5gfkpu3Me"
+    });
+
+    const ordersTable = cloud.database.from("charity_orders");
+    const productsTable = cloud.database.from("charity_products");
     const defaultProducts = [
+      { id: "irregular-sticky-notes", name: "异形便利贴", price: 800, deals: [{ qty: 2, price: 1200 }], rule: "1 本 ¥8 · 2 本 ¥12", image: "new-irregular-sticky-notes" },
+      { id: "twill-scarf", name: "双面斜纹丝巾", price: 1800, rule: "¥18 / 条", image: "new-twill-scarf" },
+      { id: "mouse-toy-10cm", name: "老鼠干（10cm）", price: 2290, rule: "¥22.9 / 个", image: "new-mouse-toy" },
+      { id: "mouse-toy-15cm", name: "老鼠干（15cm）", price: 2390, rule: "¥23.9 / 个", image: "new-mouse-toy" },
+      { id: "cat-card-sleeve-new", name: "猫猫卡套（新款）", price: 1890, rule: "¥18.9 / 个", image: "new-card-sleeve" },
+      { id: "cat-keycaps", name: "猫猫键帽", price: 890, deals: [{ qty: 5, price: 3990 }], rule: "1 个 ¥8.9 · 5 个 ¥39.9", image: "new-cat-keycaps" },
+      { id: "round-plush-badge", name: "毛绒圆形吧唧", price: 1590, rule: "¥15.9 / 个", image: "new-round-plush-badge" },
+      { id: "cat-ear-plush-badge", name: "猫耳毛绒吧唧", price: 1590, rule: "¥15.9 / 个", image: "new-cat-ear-plush-badge" },
+      { id: "cat-wallet", name: "钱包", price: 2490, rule: "¥24.9 / 个", image: "new-wallet" },
+      { id: "blind-box", name: "盲盒", price: 880, rule: "¥8.8 / 抽（吧唧 1 个或明信片 5 张）", image: "new-blind-box" },
       { id: "bag", name: "环保收纳袋", price: 3500, rule: "¥35 / 个", image: "native-bag" },
       { id: "mousepad", name: "鼠标垫", price: 1590, rule: "¥15.9 / 个", image: "native-mousepad" },
       { id: "plastic-card", name: "塑料卡套", price: 1590, rule: "¥15.9 / 个", image: "native-plastic-card" },
@@ -851,11 +882,9 @@
       { id: "small-card", name: "小卡", price: 200, deals: [{ qty: 5, price: 800 }], rule: "1 张 ¥2 · 5 张 ¥8", image: "native-small-card" },
       { id: "passport", name: "空白小猫护照本", price: 880, rule: "¥8.8 / 本", image: "sprite-b pos-3" },
       { id: "synthetic-sticker", name: "合成纸小猫贴纸", price: 680, rule: "¥6.8 / 张", image: "native-synthetic-sticker" },
-      { id: "silver-sticker", name: "哑银小猫贴纸", price: 480, rule: "¥4.8 / 张", image: "native-silver-sticker" },
-      { id: "cat-mask", name: "猫猫口罩", price: 100, deals: [{ qty: 10, price: 800 }], rule: "1 个 ¥1 · 10 个 ¥8", image: "" },
-      { id: "acrylic-stand-large", name: "亚克力立体摆件（大）", price: 1990, rule: "¥19.9 / 个", image: "" },
-      { id: "acrylic-stand-small-round", name: "亚克力立体摆件（小、圆）", price: 1290, rule: "¥12.9 / 个", image: "" }
+      { id: "silver-sticker", name: "哑银小猫贴纸", price: 480, rule: "¥4.8 / 张", image: "native-silver-sticker" }
     ];
+    const retiredProductIds = new Set(["cat-mask", "acrylic-stand-large", "acrylic-stand-small-round"]);
 
     let products = defaultProducts.map(product => ({ ...product, deals: (product.deals || []).map(deal => ({ ...deal })) }));
 
@@ -875,11 +904,12 @@
 
     async function loadProducts() {
       try {
-        const response = await fetch("/api/products", { headers: { "Accept": "application/json" } });
-        if (!response.ok) throw new Error(`读取失败（${response.status}）`);
-        const payload = await response.json();
-        const records = Array.isArray(payload) ? payload : (payload.data || payload.records || []);
-        products = mergeProductsWithDefaults(records);
+        // 读取全部记录（含已软删除的），由 mergeProductsWithDefaults 负责过滤和合并
+        const { data, error } = await productsTable
+          .select("id, name, price, deals, rule, image, \"imageData\", deleted, \"sortOrder\"")
+          .order("sortOrder", { ascending: true });
+        if (error) throw error;
+        products = mergeProductsWithDefaults(data || []);
         renderProducts();
         renderCart();
       } catch (error) {
@@ -888,32 +918,37 @@
     }
 
     async function saveProductToStore(product, exists) {
-      const response = await fetch(exists ? `/api/products/${encodeURIComponent(product.id)}` : "/api/products", {
-        method: exists ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({ ...product, deleted: false, sortOrder: products.findIndex(item => item.id === product.id) >= 0 ? products.findIndex(item => item.id === product.id) : products.length })
-      });
-      if (!response.ok) throw new Error(`保存失败（${response.status}）`);
+      const sortOrder = products.findIndex(item => item.id === product.id) >= 0
+        ? products.findIndex(item => item.id === product.id)
+        : products.length;
+      const record = { ...product, deleted: false, sortOrder, updatedAt: Date.now() };
+      // 幂等写入：同一 id 已存在时更新，不存在时新增
+      const { error } = await productsTable.upsert(record, { onConflict: "id" });
+      if (error) throw error;
     }
 
     async function deleteProductFromStore(product) {
-      const response = await fetch(`/api/products/${encodeURIComponent(product.id)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({ ...product, deleted: true, sortOrder: Math.max(0, defaultProducts.findIndex(item => item.id === product.id)) })
-      });
-      if (!response.ok) throw new Error(`删除失败（${response.status}）`);
+      // 软删除：标记 deleted=true，记录保留在云端
+      const record = {
+        ...product,
+        deleted: true,
+        sortOrder: Math.max(0, defaultProducts.findIndex(item => item.id === product.id)),
+        updatedAt: Date.now()
+      };
+      const { error } = await productsTable.upsert(record, { onConflict: "id" });
+      if (error) throw error;
     }
 
     async function loadOrderHistory() {
       try {
         historyCloudState = "loading";
         renderHistory();
-        const response = await fetch("/api/orders", { headers: { "Accept": "application/json" } });
-        if (!response.ok) throw new Error(`读取失败（${response.status}）`);
-        const payload = await response.json();
-        const records = Array.isArray(payload) ? payload : (payload.data || payload.records || []);
-        orderHistory = records.map(record => ({ ...record, id: record.id || record._id })).sort((a, b) => b.timestamp - a.timestamp);
+        const { data, error } = await ordersTable
+          .select("id, timestamp, total, count, items, note")
+          .order("timestamp", { ascending: false })
+          .limit(1000);
+        if (error) throw error;
+        orderHistory = (data || []).slice().sort((a, b) => b.timestamp - a.timestamp);
         historyCloudState = "ready";
         renderHistory();
       } catch (error) {
@@ -935,16 +970,26 @@
         items: lines.map(({ product, qty }) => ({ name: product.name, qty })),
         note: $("#orderNote").value.trim()
       };
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify(record)
-      });
-      if (!response.ok) throw new Error(`保存失败（${response.status}）`);
-      const payload = await response.json().catch(() => ({}));
-      orderHistory.unshift({ ...record, ...(payload.record || payload.data || {}), id: payload.id || payload._id || record.id });
+      validateOrderRecord(record);
+      // 幂等写入：同一 id 重试不会产生重复记录
+      const { error } = await ordersTable.upsert(record, { onConflict: "id", ignoreDuplicates: true });
+      if (error) throw error;
+      orderHistory.unshift(record);
       historyCloudState = "ready";
       renderHistory();
+    }
+
+    function validateOrderRecord(record) {
+      if (typeof record.id !== "string" || !record.id || record.id.length > 80) throw new Error("订单编号非法");
+      if (!Number.isInteger(record.timestamp) || record.timestamp <= 0) throw new Error("时间戳非法");
+      if (!Number.isInteger(record.total) || record.total < 0) throw new Error("金额非法");
+      if (!Number.isInteger(record.count) || record.count < 1 || record.count > 9900) throw new Error("件数非法");
+      if (!Array.isArray(record.items) || !record.items.length || record.items.length > 100) throw new Error("商品明细非法");
+      if (typeof record.note !== "string" || record.note.length > 200) throw new Error("备注非法");
+      record.items.forEach(item => {
+        if (typeof item.name !== "string" || !item.name || item.name.length > 40) throw new Error("商品名非法");
+        if (!Number.isInteger(item.qty) || item.qty < 1 || item.qty > 99) throw new Error("商品数量非法");
+      });
     }
 
     function formatHistoryTime(timestamp, full = false) {
@@ -1031,8 +1076,8 @@
 
     async function deleteHistoryRecord(id) {
       try {
-        const response = await fetch(`/api/orders/${encodeURIComponent(id)}`, { method: "DELETE", headers: { "Accept": "application/json" } });
-        if (!response.ok) throw new Error(`删除失败（${response.status}）`);
+        const { error } = await ordersTable.delete().eq("id", id);
+        if (error) throw error;
         orderHistory = orderHistory.filter(record => record.id !== id);
         selectedHistoryIds.delete(id);
         renderHistory();
@@ -1204,7 +1249,7 @@
     }
 
     function mergeProductsWithDefaults(records) {
-      const cloudRecords = Array.isArray(records) ? records : [];
+      const cloudRecords = (Array.isArray(records) ? records : []).filter(record => !retiredProductIds.has(String(record.id)));
       const cloudById = new Map(cloudRecords.map(record => [String(record.id), record]));
       const defaultIds = new Set(defaultProducts.map(product => product.id));
       const merged = [];
@@ -1408,7 +1453,14 @@
       } else {
         gifts = `<p class="not-reached">本单暂未达到满赠门槛（满 ¥35 送口罩，满 ¥50 升级为 1 个立牌）</p>`;
       }
-      $("#giftConfirm").innerHTML = `<h3>🎁 本单赠品</h3>${gifts}`;
+      $("#giftConfirm").innerHTML = `
+        <h3>🎁 本单赠品</h3>${gifts}
+        <div class="draw-reminders">
+          <h3>🐾 抽卡提醒</h3>
+          <p>任意消费：抽 3 次小卡</p>
+          <p>一根猫条：抽 3 次小卡</p>
+          <p>展示今年延长校区校内流浪猫救助捐款：抽 5 次小卡</p>
+        </div>`;
 
       $("#checkoutContent").style.display = "block";
       $("#successScreen").classList.remove("show");
@@ -1585,7 +1637,7 @@
 
     const today = new Date();
     $("#dateText").textContent = new Intl.DateTimeFormat("zh-CN", { month: "long", day: "numeric", weekday: "short" }).format(today);
-    renderProducts();
+    setProductView(new URLSearchParams(location.search).get("view") === "photo" ? "photo" : "text");
     renderCart();
     renderHistory();
     loadOrderHistory();
@@ -1593,4 +1645,3 @@
   </script>
 </body>
 </html>
-
